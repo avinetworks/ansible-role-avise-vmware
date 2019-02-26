@@ -18,7 +18,6 @@
         timeout: 600
         data:
           file_format: ova
-      delegate_to: localhost
   when: (not se_ova_status.stat.exists) or (se_vmw_ova_force_mode)
 
 - name: Avi SE | VMware | Verify SE image on Controller
@@ -28,7 +27,6 @@
 - name: Avi SE | VMware | Verify SE image on Local
   stat: path={{ se_vmw_ova_download_path }}/{{ se_vmw_ova_image_name }}
   register: se_ova_local_status
-  delegate_to: localhost
 
 - name: Avi SE | VMware | Image Deploy | Get SE image on Local
   avi_api_fileservice:
@@ -39,7 +37,6 @@
     upload: false
     path: seova
     file_path: '{{ se_vmw_ova_download_path }}/{{ se_vmw_ova_image_name }}'
-  delegate_to: localhost
   when: not se_ova_local_status.stat.exists
 
 - name: Avi SE | VMware | Verify SE image on Local
@@ -48,4 +45,3 @@
       register: se_ova_local_status
     - set_fact: se_vmw_ova_path={{ se_ova_local_status.stat.path }}
     - debug: msg='{{ se_vmw_ova_path }}'
-  delegate_to: localhost
