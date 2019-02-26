@@ -59,7 +59,6 @@
     se_vmw_memory_reserved: '{{ se_vmw_memory_reserved }}'
     se_vmw_disk_size: '{{ se_vmw_disk_size }}'
     se_vmw_ovf_properties: '{{ se_vmw_ovf_properties }}'
-  delegate_to: localhost
 
 - name: Avi SE | Verify SE Deployment
   verify_se:
@@ -73,6 +72,5 @@
     se_vmw_vm_name: '{{ se_vmw_vm_name }}'
     se_vmw_mgmt_ip: '{{ se_vmw_mgmt_ip }}'
   register: verify_output
-  delegate_to: localhost
 
 - debug: msg={{ verify_output.msg }}
