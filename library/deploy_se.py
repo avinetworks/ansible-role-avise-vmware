@@ -364,12 +364,14 @@ def main():
                     module.params['se_vmw_vm_name']))
 
     ova_file = module.params['se_vmw_ova_path']
+    if (module.params['se_vmw_ova_path'].startswith('http')):
+        if (requests.head(module.params['se_vmw_ova_path']).status_code != 200):
+            module.fail_json(msg='SE OVA not found or readable from specified URL path')
     if (not os.path.isfile(ova_file) or
             not os.access(ova_file, os.R_OK)):
         module.fail_json(msg='SE OVA not found or not readable')
 
     ovftool_exec = '%s/ovftool' % module.params['ovftool_path']
-    ova_file = ova_file
     quoted_vcenter_user = quote(module.params['vcenter_user'])
     quoted_vcenter_password = quote(module.params['vcenter_password'])
 
