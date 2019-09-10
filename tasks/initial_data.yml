@@ -10,12 +10,27 @@
     - se_master_ctl_username
     - se_master_ctl_password
 
+
 - name: Avi SE | Initial Data | Get Controller information
   uri:
     url: "https://{{ se_master_ctl_ip }}/api/initial-data"
     validate_certs: no
   register: initial_data
   delegate_to: localhost
+
+- name: Avi SE | VMware | Initial Data | Set controller version
+  set_fact:
+    se_master_ctl_version: "{{ initial_data.json.version.Version }}"
+  
+- name: Avi SE | VMware | Initial Data | Set SE image path for controller version < 18.2.6
+  set_fact:
+    se_image_path: "/opt/avi/se_ova"
+  when: se_master_ctl_version < "18.2.6"
+
+- name: Avi SE | CSP | Image deploy | Set SE image path for controller version >= 18.2.6
+  set_fact:
+    se_image_path: "/host/pkgs/{{ initial_data.json.version.Tag }}"
+  when: se_master_ctl_version >= "18.2.6"
 
 - name: Avi SE | VMware | Initial Data | Get Controller cluster status
   uri:

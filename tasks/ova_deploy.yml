@@ -2,8 +2,9 @@
 # Manage getting ova image from controller to local to be used by ovftool for deployment on 
 # VMware Cloud
 
+
 - name: Avi SE | VMware | Image deploy | Verify ova exists on controller
-  stat: path=/opt/avi/se_ova/{{ se_vmw_ova_image_file }}
+  stat: path={{ se_image_path }}/{{ se_vmw_ova_image_file }}
   register: se_ova_status
 
 - block:
@@ -22,7 +23,7 @@
   when: (not se_ova_status.stat.exists) or (se_vmw_ova_force_mode)
 
 - name: Avi SE | VMware | Verify SE image on Controller
-  stat: path=/opt/avi/se_ova/{{ se_vmw_ova_image_file }}
+  stat: path={{ se_image_path }}/{{ se_vmw_ova_image_file }}
   register: se_ova_status
 
 - name: Avi SE | VMware | Verify SE image on Local
