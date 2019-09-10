@@ -18,10 +18,12 @@
   register: initial_data
   delegate_to: localhost
 
-- name: Avi SE | VMware | Initial Data | Set controller version
+- name: Avi SE | VMware | Initial Data | Set Controller version information
   set_fact:
+    ctl_build: "{{ initial_data.json.version.build }}"
     se_master_ctl_version: "{{ initial_data.json.version.Version }}"
-  
+  when: initial_data
+
 - name: Avi SE | VMware | Initial Data | Set SE image path for controller version < 18.2.6
   set_fact:
     se_image_path: "/opt/avi/se_ova"
@@ -38,12 +40,6 @@
     validate_certs: no
   register: cluster_status
   delegate_to: localhost
-
-- name: Avi SE | VMware | Initial Data | Set Controller version information
-  set_fact:
-    ctl_build: "{{ initial_data.json.version.build }}"
-    se_master_ctl_version: "{{ initial_data.json.version.Version }}"
-  when: initial_data
 
 - name: Avi SE | VMware | Initial Data | Set Controller Cluster UUID information
   set_fact:
