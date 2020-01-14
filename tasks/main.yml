@@ -37,6 +37,7 @@
     vcenter_password: '{{ vcenter_password }}'
     ssl_verify: '{{ ssl_verify }}'
     state: '{{ state }}'
+    se_vmw_host: '{{ se_vmw_host }}'
     se_vmw_datacenter: '{{ se_vmw_datacenter }}'
     se_vmw_cluster: '{{ se_vmw_cluster }}'
     se_vmw_datastore: '{{ se_vmw_datastore }}'
