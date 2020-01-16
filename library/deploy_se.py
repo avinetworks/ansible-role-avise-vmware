@@ -105,12 +105,12 @@ def get_first_cluster(si, dc):
     return first_cluster
 
 
-def get_ds(dc, name, type='datacenter'):
+def get_ds(dc, name, inst_type='datacenter'):
     """
     Pick a datastore by its name from datacenter or host.
     :param dc: datacenter or host instance
     :param name: Name of the datastore
-    :param type: type of the instance datacenter/host
+    :param inst_type: type of the instance datacenter/host
     :return:
     """
     for ds in dc.datastore:
@@ -119,7 +119,7 @@ def get_ds(dc, name, type='datacenter'):
                 return ds
         except:  # Ignore datastores that have issues
             pass
-    raise Exception("Failed to find %s on %s %s" % (name, type, dc.name))
+    raise Exception("Failed to find %s on %s %s" % (name, inst_type, dc.name))
 
 def get_host(cl, name):
     """
@@ -333,12 +333,12 @@ def main():
     datastore_name = module.params.get('se_vmw_datastore', None)
     if host_name and datastore_name:
         host = get_host(cl, host_name)
-        ds = get_ds(host, datastore_name, type='host')
+        ds = get_ds(host, datastore_name, inst_type='host')
     elif host_name:
         host = get_host(cl, host_name)
         ds = get_largest_free_ds(host)
     elif datastore_name:
-        ds = get_ds(cl, datastore_name, type="datacenter")
+        ds = get_ds(cl, datastore_name, inst_type="datacenter")
     else:
         ds = get_largest_free_ds(cl)
 
