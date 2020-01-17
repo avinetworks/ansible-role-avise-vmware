@@ -42,3 +42,4 @@ se_vmw_memory_reserved: ~
 se_vmw_disk_size: 10
 se_vmw_ovf_properties: ~
 se_vmw_ova_download_path: .
+se_vmw_host: ~

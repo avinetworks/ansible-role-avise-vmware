@@ -105,9 +105,13 @@ def get_first_cluster(si, dc):
     return first_cluster
 
 
-def get_ds(dc, name):
+def get_ds(dc, name, inst_type='datacenter'):
     """
-    Pick a datastore by its name.
+    Pick a datastore by its name from datacenter or host.
+    :param dc: datacenter or host instance
+    :param name: Name of the datastore
+    :param inst_type: type of the instance datacenter/host
+    :return:
     """
     for ds in dc.datastore:
         try:
@@ -115,8 +119,19 @@ def get_ds(dc, name):
                 return ds
         except:  # Ignore datastores that have issues
             pass
-    raise Exception("Failed to find %s on datacenter %s" % (name, dc.name))
+    raise Exception("Failed to find %s on %s %s" % (name, inst_type, dc.name))
 
+def get_host(cl, name):
+    """
+    Pick a datastore by its name.
+    """
+    for host in cl.host:
+        try:
+            if host.name == name:
+                return host
+        except: # Ignore hosts that have issues
+            pass
+    raise Exception("Failed to find %s host on cluster %s" % (name, cl.name))
 
 def get_sysadmin_key(keypath):
     if os.path.exists(keypath):
@@ -241,6 +256,7 @@ def main():
             vcenter_password=dict(required=True, type='str', no_log=True),
             ssl_verify=dict(required=False, type='bool', default=False),
             state=dict(required=False, type='str', default='present'),
+            se_vmw_host=dict(required=False, type='str'),
             se_vmw_datacenter=dict(required=False, type='str'),
             se_vmw_cluster=dict(required=False, type='str'),
             se_vmw_datastore=dict(required=False, type='str'),
@@ -300,7 +316,8 @@ def main():
         wait_for_tasks(si, [task])
 
         return module.exit_json(msg='A VM with the name %s deleted successfully'
-                                    % (module.params['se_vmw_vm_name']))
+                                    % (module.params['se_vmw_vm_name']),
+                                changed=True)
 
     if module.params.get('se_vmw_datacenter', None):
         dc = get_dc(si, module.params['se_vmw_datacenter'])
@@ -312,8 +329,16 @@ def main():
     else:
         cl = get_first_cluster(si, dc)
 
-    if module.params.get('se_vmw_datastore', None):
-        ds = get_ds(cl, module.params['se_vmw_datastore'])
+    host_name = module.params.get('se_vmw_host', None)
+    datastore_name = module.params.get('se_vmw_datastore', None)
+    if host_name and datastore_name:
+        host = get_host(cl, host_name)
+        ds = get_ds(host, datastore_name, inst_type='host')
+    elif host_name:
+        host = get_host(cl, host_name)
+        ds = get_largest_free_ds(host)
+    elif datastore_name:
+        ds = get_ds(cl, datastore_name, inst_type="datacenter")
     else:
         ds = get_largest_free_ds(cl)
 
@@ -380,6 +405,8 @@ def main():
         module.params['vcenter_host'])
     vi_string += '/%s%s/%s' % (dc.name, compile_folder_path_for_object(cl),
                                cl.name)
+    if host_name:
+        vi_string += '/' + host_name
     command_tokens = [ovftool_exec]
 
     if module.params['se_vmw_power_on'] and not is_reconfigure_vm(module):
