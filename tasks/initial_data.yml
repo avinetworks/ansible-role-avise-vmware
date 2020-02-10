@@ -16,7 +16,6 @@
     url: "https://{{ se_master_ctl_ip }}/api/initial-data"
     validate_certs: no
   register: initial_data
-  delegate_to: localhost
 
 - name: Avi SE | VMware | Initial Data | Set Controller version information
   set_fact:
@@ -39,7 +38,6 @@
     url: "https://{{ se_master_ctl_ip }}/api/cluster/status"
     validate_certs: no
   register: cluster_status
-  delegate_to: localhost
 
 - name: Avi SE | VMware | Initial Data | Set Controller Cluster UUID information
   set_fact:
