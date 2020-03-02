@@ -25,55 +25,60 @@
   include: autoregistration.yml
   when: se_autoregister
 
-- name: Avi SE | VMware | Get OVA image 
-  include: ova_deploy.yml
-  when: se_ova_deploy
+- name: Avi SE | Destroy Vm
+  include: destroy_se.yml
+  when: state == "absent"
 
-- name: Avi SE | VMware | Deploy SE VM
-  deploy_se:
-    ovftool_path: '{{ ovftool_path }}'
-    vcenter_host: '{{ vcenter_host }}'
-    vcenter_user: '{{ vcenter_user }}'
-    vcenter_password: '{{ vcenter_password }}'
-    ssl_verify: '{{ ssl_verify }}'
-    state: '{{ state }}'
-    se_vmw_host: '{{ se_vmw_host }}'
-    se_vmw_datacenter: '{{ se_vmw_datacenter }}'
-    se_vmw_cluster: '{{ se_vmw_cluster }}'
-    se_vmw_datastore: '{{ se_vmw_datastore }}'
-    se_vmw_ovf_networks: '{{ se_vmw_ovf_networks }}' 
-    se_vmw_disk_mode: '{{ se_vmw_disk_mode }}'
-    se_vmw_ova_path: '{{ se_vmw_ova_path }}'
-    se_vmw_vm_name: '{{ se_vmw_vm_name }}'
-    se_vmw_power_on: '{{ se_vmw_power_on }}'
-    se_vmw_vcenter_folder: '{{ se_vmw_vcenter_folder }}'
-    se_vmw_mgmt_ip: '{{ se_vmw_mgmt_ip }}'
-    se_vmw_mgmt_mask: '{{ se_vmw_mgmt_mask }}'
-    se_vmw_default_gw: '{{ se_vmw_default_gw }}'
-    se_vmw_sysadmin_public_key: '{{ se_vmw_sysadmin_public_key }}'
-    se_auth_token: '{{ se_auth_token }}'
-    se_cluster_uuid: '{{ se_cluster_uuid }}'
-    se_master_ctl_ip: '{{ se_master_ctl_ip }}'
-    se_vmw_number_of_cpus: '{{ se_vmw_number_of_cpus }}'
-    se_vmw_cpu_reserved: '{{ se_vmw_cpu_reserved }}'
-    se_vmw_memory: '{{ se_vmw_memory }}'
-    se_vmw_memory_reserved: '{{ se_vmw_memory_reserved }}'
-    se_vmw_disk_size: '{{ se_vmw_disk_size }}'
-    se_vmw_ovf_properties: '{{ se_vmw_ovf_properties }}'
-  delegate_to: localhost
+- block:
+    - name: Avi SE | VMware | Get OVA image
+      include: ova_deploy.yml
+      when: se_ova_deploy
 
-- name: Avi SE | Verify SE Deployment
-  verify_se:
-    se_master_ctl_ip: '{{ se_master_ctl_ip }}'
-    se_master_ctl_username: '{{ se_master_ctl_username }}'
-    se_master_ctl_password: '{{ se_master_ctl_password }}'
-    se_master_ctl_version: '{{ se_master_ctl_version }}'
-    se_cloud_name: '{{ se_cloud_name }}'
-    se_group_name: '{{ se_group_name }}'
-    se_tenant: '{{ se_tenant }}'
-    se_vmw_vm_name: '{{ se_vmw_vm_name }}'
-    se_vmw_mgmt_ip: '{{ se_vmw_mgmt_ip }}'
-  register: verify_output
-  delegate_to: localhost
+    - name: Avi SE | VMware | Deploy SE VM
+      deploy_se:
+        ovftool_path: '{{ ovftool_path }}'
+        vcenter_host: '{{ vcenter_host }}'
+        vcenter_user: '{{ vcenter_user }}'
+        vcenter_password: '{{ vcenter_password }}'
+        ssl_verify: '{{ ssl_verify }}'
+        state: '{{ state }}'
+        se_vmw_datacenter: '{{ se_vmw_datacenter }}'
+        se_vmw_cluster: '{{ se_vmw_cluster }}'
+        se_vmw_datastore: '{{ se_vmw_datastore }}'
+        se_vmw_ovf_networks: '{{ se_vmw_ovf_networks }}'
+        se_vmw_disk_mode: '{{ se_vmw_disk_mode }}'
+        se_vmw_ova_path: '{{ se_vmw_ova_path }}'
+        se_vmw_vm_name: '{{ se_vmw_vm_name }}'
+        se_vmw_power_on: '{{ se_vmw_power_on }}'
+        se_vmw_vcenter_folder: '{{ se_vmw_vcenter_folder }}'
+        se_vmw_mgmt_ip: '{{ se_vmw_mgmt_ip }}'
+        se_vmw_mgmt_mask: '{{ se_vmw_mgmt_mask }}'
+        se_vmw_default_gw: '{{ se_vmw_default_gw }}'
+        se_vmw_sysadmin_public_key: '{{ se_vmw_sysadmin_public_key }}'
+        se_auth_token: '{{ se_auth_token }}'
+        se_cluster_uuid: '{{ se_cluster_uuid }}'
+        se_master_ctl_ip: '{{ se_master_ctl_ip }}'
+        se_vmw_number_of_cpus: '{{ se_vmw_number_of_cpus }}'
+        se_vmw_cpu_reserved: '{{ se_vmw_cpu_reserved }}'
+        se_vmw_memory: '{{ se_vmw_memory }}'
+        se_vmw_memory_reserved: '{{ se_vmw_memory_reserved }}'
+        se_vmw_disk_size: '{{ se_vmw_disk_size }}'
+        se_vmw_ovf_properties: '{{ se_vmw_ovf_properties }}'
+      delegate_to: localhost
 
-- debug: msg={{ verify_output.msg }}
+    - name: Avi SE | Verify SE Deployment
+      verify_se:
+        se_master_ctl_ip: '{{ se_master_ctl_ip }}'
+        se_master_ctl_username: '{{ se_master_ctl_username }}'
+        se_master_ctl_password: '{{ se_master_ctl_password }}'
+        se_master_ctl_version: '{{ se_master_ctl_version }}'
+        se_cloud_name: '{{ se_cloud_name }}'
+        se_group_name: '{{ se_group_name }}'
+        se_tenant: '{{ se_tenant }}'
+        se_vmw_vm_name: '{{ se_vmw_vm_name }}'
+        se_vmw_mgmt_ip: '{{ se_vmw_mgmt_ip }}'
+      register: verify_output
+      delegate_to: localhost
+
+    - debug: msg={{ verify_output.msg }}
+  when: state == "present"
