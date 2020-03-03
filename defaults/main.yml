@@ -22,7 +22,7 @@ vcenter_host: ~
 vcenter_user: ~
 vcenter_password: ~
 ssl_verify: false
-state: present
+state: "present"
 se_vmw_datacenter: ~
 se_vmw_cluster: ~
 se_vmw_datastore: ~
