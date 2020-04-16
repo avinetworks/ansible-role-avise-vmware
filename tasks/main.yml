@@ -81,5 +81,18 @@
       delegate_to: localhost
 
     - debug: msg={{ verify_output.msg }}
+
+    - name: Avi SE | Attach SE to SE group
+      avi_api_session:
+        controller: "{{ se_master_ctl_ip }}"
+        username: "{{ se_master_ctl_username }}"
+        password: "{{ se_master_ctl_password }}"
+        tenant: "{{ se_tenant }}"
+        api_version: "{{ se_master_ctl_version }}"
+        http_method: patch
+        data:
+          add:
+            se_group_ref: "/api/serviceenginegroup?name={{ se_group_name }}"
+        path: "serviceengine/{{ verify_output.se_details.uuid }}" 
   when: state == "present"
-  
+

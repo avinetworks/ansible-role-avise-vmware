@@ -66,8 +66,7 @@ def main():
 
     path = 'serviceengine'
     gparams = {
-        'cloud_ref.name': module.params['se_cloud_name'],
-        'se_group_ref.name': module.params['se_group_name']
+        'cloud_ref.name': module.params['se_cloud_name']
     }
 
     step = 0
@@ -84,7 +83,7 @@ def main():
         if my_deployed_se != None:
             mymsg = 'Service Engine \'%s\' is deployed and is connected to the Controller %s' % (
                 my_deployed_se['name'], module.params['se_master_ctl_ip'])
-            return module.exit_json(changed=True, msg=(mymsg))
+            return module.exit_json(changed=True, msg=(mymsg), se_details=my_deployed_se)
         time.sleep(SLEEP)
         step += 1
 
