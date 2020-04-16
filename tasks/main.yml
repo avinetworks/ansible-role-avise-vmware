@@ -34,6 +34,20 @@
       include: ova_deploy.yml
       when: se_ova_deploy
 
+    - name: Avi SE | Verify non default se group is available
+      avi_api_session:
+        controller: "{{ se_master_ctl_ip }}"
+        username: "{{ se_master_ctl_username }}"
+        password: "{{ se_master_ctl_password }}"
+        tenant: "{{ se_tenant }}"
+        api_version: "{{ se_master_ctl_version }}"
+        http_method: get
+        path: "serviceenginegroup/?name={{ se_group_name }}"
+      register: se_group_data
+      failed_when: se_group_data.obj.count != 1
+      when: se_group_name != "Default-Group"
+
+
     - name: Avi SE | VMware | Deploy SE VM
       deploy_se:
         ovftool_path: '{{ ovftool_path }}'
@@ -93,6 +107,7 @@
         data:
           add:
             se_group_ref: "/api/serviceenginegroup?name={{ se_group_name }}"
-        path: "serviceengine/{{ verify_output.se_details.uuid }}" 
+        path: "serviceengine/{{ verify_output.se_details.uuid }}"
   when: state == "present"
+
 
