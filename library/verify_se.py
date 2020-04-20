@@ -6,7 +6,7 @@ import time
 import requests
 import atexit
 from pyVim.connect import SmartConnectNoSSL, Disconnect
-from pyVmomi import vim, vmodl
+from pyVmomi import vim
 try:
     from __main__ import display
 except ImportError:
