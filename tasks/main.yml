@@ -91,6 +91,11 @@
         se_tenant: '{{ se_tenant }}'
         se_vmw_vm_name: '{{ se_vmw_vm_name }}'
         se_vmw_mgmt_ip: '{{ se_vmw_mgmt_ip }}'
+        se_vmw_ovf_networks: '{{ se_vmw_ovf_networks }}'
+        vcenter_host: '{{ vcenter_host }}'
+        vcenter_user: '{{ vcenter_user }}'
+        vcenter_password: '{{ vcenter_password }}'
+        max_se_up_wait: '{{ max_se_up_wait }}'
       register: verify_output
       delegate_to: localhost
 
@@ -109,5 +114,6 @@
             se_group_ref: "/api/serviceenginegroup?name={{ se_group_name }}"
         path: "serviceengine/{{ verify_output.se_details.uuid }}"
   when: state == "present"
+
 
 

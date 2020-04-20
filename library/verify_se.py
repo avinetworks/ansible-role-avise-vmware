@@ -3,7 +3,10 @@
 import json
 from ansible.module_utils.basic import AnsibleModule
 import time
-
+import requests
+import atexit
+from pyVim.connect import SmartConnectNoSSL, Disconnect
+from pyVmomi import vim, vmodl
 try:
     from __main__ import display
 except ImportError:
@@ -26,9 +29,27 @@ try:
 except ImportError:
     HAS_AVI = False
 
-RETRIES = 120
-SLEEP = 5
-INITIAL_SLEEP = 10
+
+
+def get_vm_by_name(si, vm_name):
+    container = si.content.viewManager.CreateContainerView(
+        si.content.rootFolder, [vim.VirtualMachine], True)
+    for vm in container.view:
+        if vm.name == vm_name:
+            return vm
+    return None
+
+
+def get_vm_ip_by_network(target_vm, network):
+    ip_address = ''
+    for nic in target_vm.guest.net:
+        if nic.network == network:
+            addresses = nic.ipConfig.ipAddress
+            for adr in addresses:
+                if adr.state == 'preferred':
+                    ip_address = adr.ipAddress
+                    break
+    return ip_address
 
 def main():
     module = AnsibleModule(
@@ -42,6 +63,11 @@ def main():
             se_tenant=dict(required=True, type='str'),
             se_vmw_vm_name=dict(required=True, type='str'),
             se_vmw_mgmt_ip=dict(required=False, type='str'),
+            se_vmw_ovf_networks=dict(required=False, type='dict'),
+            vcenter_host=dict(required=True, type='str'),
+            vcenter_user=dict(required=True, type='str'),
+            vcenter_password=dict(required=True, type='str', no_log=True),
+            max_se_up_wait=dict(required=False, type='int', default=50),
         ),
         supports_check_mode=False,
     )
@@ -54,14 +80,36 @@ def main():
     se_mgmt_ip = ''
     se_vm_name = module.params['se_vmw_vm_name']
     my_deployed_se = None
+    mgmt_network = None
+    se_vm = None
 
     if module.params.get('se_vmw_mgmt_ip', None):
         se_mgmt_ip = module.params['se_vmw_mgmt_ip']
+    elif module.params.get("se_vmw_ovf_networks", None):
+        ovf_networks = module.params.get("se_vmw_ovf_networks")
+        if "Management" in ovf_networks:
+            mgmt_network = ovf_networks["Management"]
+            try:
+                si = SmartConnectNoSSL(host=module.params['vcenter_host'],
+                                       user=module.params['vcenter_user'],
+                                       pwd=module.params['vcenter_password'])
+                atexit.register(Disconnect, si)
+            except vim.fault.InvalidLogin:
+                return module.fail_json(
+                    msg='exception while connecting to vCenter, login failure, '
+                        'check username and password')
+            except requests.exceptions.ConnectionError:
+                return module.fail_json(
+                    msg='exception while connecting to vCenter, check hostname, '
+                        'FQDN or IP')
+            se_vm = get_vm_by_name(si, se_vm_name)
+            if not se_vm:
+                module.fail_json(msg='No Vm with name %s found' % se_vm)
 
     api = ApiSession.get_session(
-        module.params['se_master_ctl_ip'], 
-        module.params['se_master_ctl_username'], 
-        password=module.params['se_master_ctl_password'], 
+        module.params['se_master_ctl_ip'],
+        module.params['se_master_ctl_username'],
+        password=module.params['se_master_ctl_password'],
         tenant=module.params['se_tenant'])
 
     path = 'serviceengine'
@@ -69,9 +117,14 @@ def main():
         'cloud_ref.name': module.params['se_cloud_name']
     }
 
+    interval = 5
+    retries = module.params.get("max_se_up_wait")/interval
+    initial_interval = 10
     step = 0
-    time.sleep(INITIAL_SLEEP)
-    while step < RETRIES:
+    time.sleep(initial_interval)
+    while step < retries:
+        if mgmt_network and not se_mgmt_ip:
+            se_mgmt_ip = get_vm_ip_by_network(se_vm, mgmt_network)
         rsp = api.get(path, tenant=module.params['se_tenant'],
                             params=gparams, api_version=module.params['se_master_ctl_version'])
         rsp_data = rsp.json()
@@ -79,15 +132,16 @@ def main():
             if (item['name'] == se_vm_name or item['name'] == se_mgmt_ip) and item['se_connected']:
                 my_deployed_se = item
                 break
-        
+
         if my_deployed_se != None:
             mymsg = 'Service Engine \'%s\' is deployed and is connected to the Controller %s' % (
                 my_deployed_se['name'], module.params['se_master_ctl_ip'])
-            return module.exit_json(changed=True, msg=(mymsg), se_details=my_deployed_se)
-        time.sleep(SLEEP)
+            return module.exit_json(changed=True, msg=(mymsg), se_details=my_deployed_se, se_ip=se_mgmt_ip)
+        time.sleep(interval)
         step += 1
 
     return module.exit_json(msg='Could not verify SE connection to the controller!')
 
 if __name__ == "__main__":
     main()
+
