@@ -136,7 +136,7 @@ def main():
         if my_deployed_se != None:
             mymsg = 'Service Engine \'%s\' is deployed and is connected to the Controller %s' % (
                 my_deployed_se['name'], module.params['se_master_ctl_ip'])
-            return module.exit_json(changed=True, msg=(mymsg), se_details=my_deployed_se, se_ip=se_mgmt_ip)
+            return module.exit_json(changed=True, msg=(mymsg), se_details=my_deployed_se)
         time.sleep(interval)
         step += 1
 
