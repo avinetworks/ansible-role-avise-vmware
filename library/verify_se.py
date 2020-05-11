@@ -32,6 +32,12 @@ except ImportError:
 
 
 def get_vm_by_name(si, vm_name):
+    '''
+    Get vm instance by name
+    :param si: vcenter conection instance
+    :param vm_name: name of the vm
+    :return: vm instance
+    '''
     container = si.content.viewManager.CreateContainerView(
         si.content.rootFolder, [vim.VirtualMachine], True)
     for vm in container.view:
@@ -41,6 +47,12 @@ def get_vm_by_name(si, vm_name):
 
 
 def get_vm_ip_by_network(target_vm, network):
+    '''
+    Try to get the IP for the network on target_vm
+    :param target_vm: vm instance
+    :param network: VM network name
+    :return: IP address for the network if found otherwise empty string
+    '''
     ip_address = ''
     for nic in target_vm.guest.net:
         if nic.network == network:
@@ -67,7 +79,7 @@ def main():
             vcenter_host=dict(required=True, type='str'),
             vcenter_user=dict(required=True, type='str'),
             vcenter_password=dict(required=True, type='str', no_log=True),
-            max_se_up_wait=dict(required=False, type='int', default=50),
+            max_se_up_wait=dict(required=False, type='int', default=600),
         ),
         supports_check_mode=False,
     )
@@ -86,6 +98,8 @@ def main():
     if module.params.get('se_vmw_mgmt_ip', None):
         se_mgmt_ip = module.params['se_vmw_mgmt_ip']
     elif module.params.get("se_vmw_ovf_networks", None):
+        #If there is no  se_vmw_mgmt_ip provided and only se_vmw_ovf_networks is available then
+        #get the SE VM instance to find DHCP IP
         ovf_networks = module.params.get("se_vmw_ovf_networks")
         if "Management" in ovf_networks:
             mgmt_network = ovf_networks["Management"]
@@ -124,6 +138,8 @@ def main():
     time.sleep(initial_interval)
     while step < retries:
         if mgmt_network and not se_mgmt_ip:
+            #try to get the mgmt IP(DHCP as no se_vmw_mgmt_ip provided) for the SE if it's not present
+            #If no IP found try to get the SE from controller by its name for current iteration
             se_mgmt_ip = get_vm_ip_by_network(se_vm, mgmt_network)
         rsp = api.get(path, tenant=module.params['se_tenant'],
                             params=gparams, api_version=module.params['se_master_ctl_version'])
@@ -140,7 +156,7 @@ def main():
         time.sleep(interval)
         step += 1
 
-    return module.exit_json(msg='Could not verify SE connection to the controller!')
+    return module.fail_json(msg='Could not verify SE connection to the controller!')
 
 if __name__ == "__main__":
     main()
