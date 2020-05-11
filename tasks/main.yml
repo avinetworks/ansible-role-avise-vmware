@@ -115,5 +115,3 @@
         path: "serviceengine/{{ verify_output.se_details.uuid }}"
   when: state == "present"
 
-
-
