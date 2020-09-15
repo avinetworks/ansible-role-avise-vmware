@@ -427,7 +427,7 @@ def main():
     if ('se_vmw_ovf_networks' in module.params.keys() and
             module.params['se_vmw_ovf_networks'] is not None):
             d = module.params['se_vmw_ovf_networks']
-            for key, network_item in d.iteritems():
+            for key, network_item in d.items():
                 command_tokens.append('--net:%s=%s' % (key, network_item))
     
     command_tokens.extend([
