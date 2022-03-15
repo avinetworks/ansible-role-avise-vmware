@@ -12,11 +12,13 @@
 
 
 - name: Avi SE | Initial Data | Get Controller information
-  uri:
-    url: "https://{{ se_master_ctl_ip }}/api/initial-data"
-    validate_certs: no
+  vmware.alb.avi_api_session:
+    controller: "{{ se_master_ctl_ip }}"
+    username: "{{ se_master_ctl_username }}"
+    password: "{{ se_master_ctl_password }}"
+    http_method: get
+    path: 'initial-data'                                                                                                                                    
   register: initial_data
-  delegate_to: localhost
 
 - name: Avi SE | VMware | Initial Data | Set Controller version information
   set_fact:
@@ -35,11 +37,13 @@
   when: se_master_ctl_version >= "18.2.6"
 
 - name: Avi SE | VMware | Initial Data | Get Controller cluster status
-  uri:
-    url: "https://{{ se_master_ctl_ip }}/api/cluster/status"
-    validate_certs: no
+  vmware.alb.avi_api_session:
+    controller: "{{ se_master_ctl_ip }}"
+    username: "{{ se_master_ctl_username }}"
+    password: "{{ se_master_ctl_password }}"
+    http_method: get
+    path: 'cluster/status'
   register: cluster_status
-  delegate_to: localhost
 
 - name: Avi SE | VMware | Initial Data | Set Controller Cluster UUID information
   set_fact:
