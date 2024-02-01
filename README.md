@@ -1,4 +1,5 @@
-# avinetworks.avise_vmware
+**⛔️ DEPRECATED: This repo is no longer supported, please consider using** https://github.com/vmware/ansible-collection-alb **instead since**
+ **this role is migrated to ansible collections.**
 
 [![Ansible Galaxy](https://img.shields.io/badge/galaxy-avinetworks.avise__vmware-blue.svg)](https://galaxy.ansible.com/avinetworks/avise_vmware/)
 
